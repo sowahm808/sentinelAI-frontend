@@ -11,7 +11,7 @@ import { AuthService } from '../../core/auth/auth.service';
       <!-- <div class="shield">S</div> -->
        <div>
         <!-- add logo below -->
-        <img src="public/sentinelai-logo.png" alt="SentinelAI Logo" class="logo" />
+        <img src="public/favicon.png" alt="SentinelAI Logo" class="logo" />
        </div>
       <p class="eyebrow">Emergency operations intelligence</p>
       <h1 id="brand-title">SentinelAI</h1>

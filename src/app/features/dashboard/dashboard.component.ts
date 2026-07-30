@@ -1,3 +1,173 @@
-import { Component,computed } from '@angular/core';import { DatePipe } from '@angular/common';import { RouterLink } from '@angular/router';import { DemoDataService } from '../../core/services/demo-data.service';import { MapComponent } from '../../shared/map/map.component';
-@Component({selector:'sai-dashboard',imports:[RouterLink,MapComponent,DatePipe],template:`<header class="page-heading"><div><p class="eyebrow">Wednesday · Operational period 12:00–00:00</p><h1>Emergency Operations Overview</h1><p>Organization-wide readiness and active incident picture.</p></div><a class="primary button" routerLink="/incidents/new">＋ Create incident</a></header><div class="demo-notice" role="note"><strong>Demonstration data</strong> — Synthetic North Texas exercise information; not official or current. Updated {{updated|date:'shortTime'}}.</div><section aria-labelledby="summary"><div class="section-title"><h2 id="summary">Operational summary</h2><span class="fresh">● Live simulation</span></div><div class="metric-grid">@for(m of metrics();track m.label){<article class="metric"><span class="metric-icon">{{m.icon}}</span><div><strong>{{m.value}}</strong><span>{{m.label}}</span><small>{{m.note}}</small></div></article>}</div></section><div class="dashboard-grid"><section class="span-8"><div class="section-title"><h2>Active incidents</h2><a routerLink="/incidents">View all</a></div><div class="incident-cards">@for(incident of data.activeIncidents();track incident.id){<article class="incident-card" [class.critical]="incident.severity==='Critical'"><div class="card-top"><span class="severity">◆ {{incident.severity}}</span><span class="status">{{incident.status}}</span></div><h3>{{incident.title}}</h3><p>{{incident.type}} · {{incident.location}}</p><dl><div><dt>Commander</dt><dd>{{incident.commander}}</dd></div><div><dt>Population affected</dt><dd>{{incident.populationAffected.toLocaleString()}}</dd></div><div><dt>Data completeness</dt><dd>{{incident.completeness}}%</dd></div></dl><div class="progress"><span [style.width.%]="incident.completeness"></span></div><a class="secondary button" [routerLink]="['/incidents',incident.id,'command']">Open workspace →</a></article>}</div></section><section class="panel span-4 priority"><div class="section-title"><h2>Priority actions</h2><span class="count">3 pending</span></div>@for(rec of data.plan().recommendations;track rec.id){<div class="action-row"><span class="priority-dot">{{rec.priority==='Immediate'?'!':'↑'}}</span><div><b>{{rec.action}}</b><small>{{rec.status}} · {{rec.responsibleRole}}</small></div></div>}<a [routerLink]="['/incidents','inc-tornado-01','recommendations']">Review AI response plan →</a></section><section class="panel span-8"><div class="section-title"><h2>Common operating picture</h2><a routerLink="/map">Open full map</a></div><sai-map [compact]="true"/></section><section class="panel span-4"><div class="section-title"><h2>Current alerts</h2><span>{{data.alerts().length}} active</span></div>@for(alert of data.alerts();track alert.id){<div class="alert-row"><span class="severity-icon">◆</span><div><b>{{alert.title}}</b><small>{{alert.type}} · {{alert.updatedAt|date:'shortTime'}}</small></div></div>}</section><section class="panel span-5"><h2>Resource readiness</h2>@for(s of resourceCounts();track s.status){<div class="bar-row"><span>{{s.status}}</span><div><i [style.width.%]="s.count/20*100"></i></div><b>{{s.count}}</b></div>}</section><section class="panel span-7"><div class="section-title"><h2>Organization timeline</h2><a [routerLink]="['/incidents','inc-tornado-01','timeline']">Full activity</a></div>@for(event of data.timeline().slice(0,5);track event.id){<div class="timeline-row"><time>{{event.at|date:'shortTime'}}</time><span></span><div><b>{{event.title}}</b><small>{{event.actor}} · {{event.detail}}</small></div></div>}</section></div>`})
-export class DashboardComponent{readonly updated=new Date();readonly metrics=computed(()=>[{label:'Active incidents',value:this.data.activeIncidents().length,icon:'◆',note:'1 escalated'},{label:'Population potentially affected',value:'21,150',icon:'♟',note:'Model estimate'},{label:'Available response units',value:this.data.resources().filter(x=>x.status==='Available').length,icon:'▣',note:'20 tracked'},{label:'Open shelters',value:this.data.shelters().filter(x=>x.status==='Open').length,icon:'⌂',note:`${this.data.shelters().reduce((s,x)=>s+x.capacity-x.occupancy,0)} spaces`},{label:'Hospitals accepting',value:this.data.hospitals().filter(x=>!x.diversion).length,icon:'✚',note:'Synthetic capacity'},{label:'Road closures',value:5,icon:'⊘',note:'2 critical routes'},{label:'Weather alerts',value:3,icon:'ϟ',note:'Exercise only'}]);readonly resourceCounts=computed(()=>['Available','Assigned','EnRoute','Deployed','Unavailable','Maintenance'].map(status=>({status,count:this.data.resources().filter(x=>x.status===status).length})));constructor(readonly data:DemoDataService){}}
+import { Component, computed } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { DemoDataService } from '../../core/services/demo-data.service';
+import { MapComponent } from '../../shared/map/map.component';
+@Component({
+  selector: 'sai-dashboard',
+  imports: [RouterLink, MapComponent, DatePipe],
+  template: `<header class="page-heading">
+      <div>
+        <p class="eyebrow">Wednesday · Operational period 12:00–00:00</p>
+        <h1>Emergency Operations Overview</h1>
+        <p>Organization-wide readiness and active incident picture.</p>
+      </div>
+      <a class="primary button" routerLink="/incidents/new">＋ Create incident</a>
+    </header>
+    <div class="demo-notice" role="note">
+      <strong>Demonstration data</strong> — Synthetic North Texas exercise information; not official or current. Updated
+      {{ updated | date: 'shortTime' }}.
+    </div>
+    <section aria-labelledby="summary">
+      <div class="section-title">
+        <h2 id="summary">Operational summary</h2>
+        <span class="fresh">● Live simulation</span>
+      </div>
+      <div class="metric-grid">
+        @for (m of metrics(); track m.label) {
+          <article class="metric">
+            <span class="metric-icon">{{ m.icon }}</span>
+            <div>
+              <strong>{{ m.value }}</strong
+              ><span>{{ m.label }}</span
+              ><small>{{ m.note }}</small>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+    <div class="dashboard-grid">
+      <section class="span-8">
+        <div class="section-title">
+          <h2>Active incidents</h2>
+          <a routerLink="/incidents">View all</a>
+        </div>
+        <div class="incident-cards">
+          @for (incident of data.activeIncidents(); track incident.id) {
+            <article class="incident-card" [class.critical]="incident.severity === 'Critical'">
+              <div class="card-top">
+                <span class="severity">◆ {{ incident.severity }}</span
+                ><span class="status">{{ incident.status }}</span>
+              </div>
+              <h3>{{ incident.title }}</h3>
+              <p>{{ incident.type }} · {{ incident.location }}</p>
+              <dl>
+                <div>
+                  <dt>Commander</dt>
+                  <dd>{{ incident.commander }}</dd>
+                </div>
+                <div>
+                  <dt>Population affected</dt>
+                  <dd>{{ incident.populationAffected.toLocaleString() }}</dd>
+                </div>
+                <div>
+                  <dt>Data completeness</dt>
+                  <dd>{{ incident.completeness }}%</dd>
+                </div>
+              </dl>
+              <div class="progress"><span [style.width.%]="incident.completeness"></span></div>
+              <a class="secondary button" [routerLink]="['/incidents', incident.id, 'command']">Open workspace →</a>
+            </article>
+          }
+        </div>
+      </section>
+      <section class="panel span-4 priority">
+        <div class="section-title">
+          <h2>Priority actions</h2>
+          <span class="count">3 pending</span>
+        </div>
+        @for (rec of data.plan().recommendations; track rec.id) {
+          <div class="action-row">
+            <span class="priority-dot">{{ rec.priority === 'Immediate' ? '!' : '↑' }}</span>
+            <div>
+              <b>{{ rec.action }}</b
+              ><small>{{ rec.status }} · {{ rec.responsibleRole }}</small>
+            </div>
+          </div>
+        }
+        <a [routerLink]="['/incidents', 'inc-tornado-01', 'recommendations']">Review AI response plan →</a>
+      </section>
+      <section class="panel span-8">
+        <div class="section-title">
+          <h2>Common operating picture</h2>
+          <a routerLink="/map">Open full map</a>
+        </div>
+        <sai-map [compact]="true" />
+      </section>
+      <section class="panel span-4">
+        <div class="section-title">
+          <h2>Current alerts</h2>
+          <span>{{ data.alerts().length }} active</span>
+        </div>
+        @for (alert of data.alerts(); track alert.id) {
+          <div class="alert-row">
+            <span class="severity-icon">◆</span>
+            <div>
+              <b>{{ alert.title }}</b
+              ><small>{{ alert.type }} · {{ alert.updatedAt | date: 'shortTime' }}</small>
+            </div>
+          </div>
+        }
+      </section>
+      <section class="panel span-5">
+        <h2>Resource readiness</h2>
+        @for (s of resourceCounts(); track s.status) {
+          <div class="bar-row">
+            <span>{{ s.status }}</span>
+            <div><i [style.width.%]="(s.count / 20) * 100"></i></div>
+            <b>{{ s.count }}</b>
+          </div>
+        }
+      </section>
+      <section class="panel span-7">
+        <div class="section-title">
+          <h2>Organization timeline</h2>
+          <a [routerLink]="['/incidents', 'inc-tornado-01', 'timeline']">Full activity</a>
+        </div>
+        @for (event of data.timeline().slice(0, 5); track event.id) {
+          <div class="timeline-row">
+            <time>{{ event.at | date: 'shortTime' }}</time
+            ><span></span>
+            <div>
+              <b>{{ event.title }}</b
+              ><small>{{ event.actor }} · {{ event.detail }}</small>
+            </div>
+          </div>
+        }
+      </section>
+    </div>`,
+})
+export class DashboardComponent {
+  readonly updated = new Date();
+  readonly metrics = computed(() => [
+    { label: 'Active incidents', value: this.data.activeIncidents().length, icon: '◆', note: '1 escalated' },
+    { label: 'Population potentially affected', value: '21,150', icon: '♟', note: 'Model estimate' },
+    {
+      label: 'Available response units',
+      value: this.data.resources().filter((x) => x.status === 'Available').length,
+      icon: '▣',
+      note: '20 tracked',
+    },
+    {
+      label: 'Open shelters',
+      value: this.data.shelters().filter((x) => x.status === 'Open').length,
+      icon: '⌂',
+      note: `${this.data.shelters().reduce((s, x) => s + x.capacity - x.occupancy, 0)} spaces`,
+    },
+    {
+      label: 'Hospitals accepting',
+      value: this.data.hospitals().filter((x) => !x.diversion).length,
+      icon: '✚',
+      note: 'Synthetic capacity',
+    },
+    { label: 'Road closures', value: 5, icon: '⊘', note: '2 critical routes' },
+    { label: 'Weather alerts', value: 3, icon: 'ϟ', note: 'Exercise only' },
+  ]);
+  readonly resourceCounts = computed(() =>
+    ['Available', 'Assigned', 'EnRoute', 'Deployed', 'Unavailable', 'Maintenance'].map((status) => ({
+      status,
+      count: this.data.resources().filter((x) => x.status === status).length,
+    })),
+  );
+  constructor(readonly data: DemoDataService) {}
+}

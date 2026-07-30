@@ -1,1 +1,14 @@
-export interface AppEnvironment { production:boolean; apiBaseUrl:string; websocketUrl:string; mapProvider:'maplibre'; mapToken:string; demoMode:boolean; enableMockApi:boolean; enableServiceWorker:boolean; applicationVersion:string; environmentName:string; telemetryEndpoint:string; featureFlags:{administration:boolean;liveSend:boolean} }
+export interface AppEnvironment {
+  production: boolean;
+  apiBaseUrl: string;
+  websocketUrl: string;
+  mapProvider: 'maplibre';
+  mapToken: string;
+  demoMode: boolean;
+  enableMockApi: boolean;
+  enableServiceWorker: boolean;
+  applicationVersion: string;
+  environmentName: string;
+  telemetryEndpoint: string;
+  featureFlags: { administration: boolean; liveSend: boolean };
+}

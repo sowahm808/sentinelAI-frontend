@@ -1,4 +1,174 @@
-import { Component,OnInit,signal } from '@angular/core';import { FormControl,FormGroup,ReactiveFormsModule,Validators } from '@angular/forms';import { Router } from '@angular/router';import { DemoDataService } from '../../core/services/demo-data.service';import { IncidentSeverity,IncidentStatus } from '../../core/models/domain.models';
-const KEY='sentinelai.incident.draft';
-@Component({selector:'sai-incident-create',imports:[ReactiveFormsModule],template:`<header class="page-heading"><div><p class="eyebrow">Incident management / New</p><h1>Create incident</h1><p>Capture the initial report. Fields can be refined as information is verified.</p></div><span class="draft-state">{{saved()?'✓ Draft saved':'Unsaved changes'}}</span></header><form class="incident-form" [formGroup]="form" (ngSubmit)="submit()"><section class="panel"><h2>Incident basics</h2><div class="form-grid"><label class="full">Title *<input formControlName="title" placeholder="Clear, location-specific incident name"></label><label>Incident type *<select formControlName="type"><option value="">Select type</option>@for(t of types;track t){<option>{{t}}</option>}</select></label><label>Severity *<select formControlName="severity">@for(s of severities;track s){<option>{{s}}</option>}</select></label><label>Status *<select formControlName="status">@for(s of statuses;track s){<option>{{s}}</option>}</select></label><label>Reported date and time *<input type="datetime-local" formControlName="reportedAt"></label><label class="full">Description *<textarea formControlName="description" rows="4"></textarea></label></div></section><section class="panel"><h2>Location and impact</h2><p class="muted">Search by address, enter coordinates, or select the demonstration map.</p><div class="form-grid"><label class="full">Address *<input formControlName="location" placeholder="Street or operational location"></label><label>City *<input formControlName="city"></label><label>County *<input formControlName="county"></label><label>State *<input formControlName="state" maxlength="2"></label><label>Latitude *<input type="number" step=".0001" formControlName="latitude"></label><label>Longitude *<input type="number" step=".0001" formControlName="longitude"></label><label>Impact radius (km) *<input type="number" formControlName="impactRadiusKm"></label><button class="map-picker full" type="button" (click)="selectMap()"><span>⌖</span><b>Select location on map</b><small>Click to use the seeded Lewisville exercise location</small></button></div></section><section class="panel"><h2>Command and initial assessment</h2><div class="form-grid"><label>Operational period *<input formControlName="operationalPeriod"></label><label>Incident commander *<input formControlName="commander"></label><label>Estimated population affected *<input type="number" formControlName="populationAffected"></label><label>Tags<input formControlName="tags" placeholder="Comma-separated"></label><label class="full">Initial observations<textarea formControlName="observations" rows="4"></textarea></label></div></section>@if(form.invalid&&attempted()){<div class="error-banner" role="alert">Review the required fields. Population and impact radius must be zero or greater, and valid coordinates are required.</div>}<div class="form-actions"><button type="button" class="secondary" (click)="saveDraft()">Save draft</button><button type="submit" class="primary" [disabled]="submitting()">{{submitting()?'Creating…':'Create incident'}}</button></div></form>`})
-export class IncidentCreateComponent implements OnInit{readonly saved=signal(false);readonly submitting=signal(false);readonly attempted=signal(false);readonly types=['Tornado','Flood','Wildfire','Severe weather','Infrastructure','Medical','Security'];readonly severities:IncidentSeverity[]=['Advisory','Minor','Moderate','Major','Critical','Catastrophic'];readonly statuses:IncidentStatus[]=['Draft','Monitoring','Active','Escalated'];readonly form=new FormGroup({title:new FormControl('',{nonNullable:true,validators:Validators.required}),type:new FormControl('',{nonNullable:true,validators:Validators.required}),description:new FormControl('',{nonNullable:true,validators:Validators.required}),severity:new FormControl<IncidentSeverity>('Moderate',{nonNullable:true}),status:new FormControl<IncidentStatus>('Active',{nonNullable:true}),reportedAt:new FormControl(new Date().toISOString().slice(0,16),{nonNullable:true,validators:Validators.required}),location:new FormControl('',{nonNullable:true,validators:Validators.required}),city:new FormControl('Lewisville',{nonNullable:true,validators:Validators.required}),county:new FormControl('Denton',{nonNullable:true,validators:Validators.required}),state:new FormControl('TX',{nonNullable:true,validators:Validators.required}),latitude:new FormControl(33.0462,{nonNullable:true,validators:[Validators.required,Validators.min(-90),Validators.max(90)]}),longitude:new FormControl(-96.9942,{nonNullable:true,validators:[Validators.required,Validators.min(-180),Validators.max(180)]}),impactRadiusKm:new FormControl(2,{nonNullable:true,validators:[Validators.required,Validators.min(0)]}),operationalPeriod:new FormControl('12:00–00:00',{nonNullable:true,validators:Validators.required}),commander:new FormControl('Jordan Lee',{nonNullable:true,validators:Validators.required}),populationAffected:new FormControl(0,{nonNullable:true,validators:[Validators.required,Validators.min(0)]}),tags:new FormControl('',{nonNullable:true}),observations:new FormControl('',{nonNullable:true})});constructor(private readonly data:DemoDataService,private readonly router:Router){this.form.valueChanges.subscribe(()=>{this.saved.set(false);sessionStorage.setItem(KEY,JSON.stringify(this.form.getRawValue()))})}ngOnInit(){const draft=sessionStorage.getItem(KEY);if(draft)try{this.form.patchValue(JSON.parse(draft) as ReturnType<typeof this.form.getRawValue>)}catch{sessionStorage.removeItem(KEY)}}selectMap(){this.form.patchValue({location:'Lewisville exercise impact area',latitude:33.0462,longitude:-96.9942})}saveDraft(){sessionStorage.setItem(KEY,JSON.stringify(this.form.getRawValue()));this.saved.set(true)}submit(){this.attempted.set(true);if(this.form.invalid){this.form.markAllAsTouched();return}this.submitting.set(true);const v=this.form.getRawValue();const item=this.data.createIncident({title:v.title,type:v.type,description:v.description,severity:v.severity,status:v.status,reportedAt:new Date(v.reportedAt).toISOString(),location:`${v.location}, ${v.city}, ${v.state}`,county:v.county,coordinates:{latitude:v.latitude,longitude:v.longitude},commander:v.commander,populationAffected:v.populationAffected,impactRadiusKm:v.impactRadiusKm});sessionStorage.removeItem(KEY);void this.router.navigate(['/incidents',item.id,'command'])}}
+import { Component, OnInit, signal } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { DemoDataService } from '../../core/services/demo-data.service';
+import { IncidentSeverity, IncidentStatus } from '../../core/models/domain.models';
+const KEY = 'sentinelai.incident.draft';
+@Component({
+  selector: 'sai-incident-create',
+  imports: [ReactiveFormsModule],
+  template: `<header class="page-heading">
+      <div>
+        <p class="eyebrow">Incident management / New</p>
+        <h1>Create incident</h1>
+        <p>Capture the initial report. Fields can be refined as information is verified.</p>
+      </div>
+      <span class="draft-state">{{ saved() ? '✓ Draft saved' : 'Unsaved changes' }}</span>
+    </header>
+    <form class="incident-form" [formGroup]="form" (ngSubmit)="submit()">
+      <section class="panel">
+        <h2>Incident basics</h2>
+        <div class="form-grid">
+          <label class="full"
+            >Title *<input formControlName="title" placeholder="Clear, location-specific incident name" /></label
+          ><label
+            >Incident type *<select formControlName="type">
+              <option value="">Select type</option>
+              @for (t of types; track t) {
+                <option>{{ t }}</option>
+              }
+            </select></label
+          ><label
+            >Severity *<select formControlName="severity">
+              @for (s of severities; track s) {
+                <option>{{ s }}</option>
+              }
+            </select></label
+          ><label
+            >Status *<select formControlName="status">
+              @for (s of statuses; track s) {
+                <option>{{ s }}</option>
+              }
+            </select></label
+          ><label>Reported date and time *<input type="datetime-local" formControlName="reportedAt" /></label
+          ><label class="full">Description *<textarea formControlName="description" rows="4"></textarea></label>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Location and impact</h2>
+        <p class="muted">Search by address, enter coordinates, or select the demonstration map.</p>
+        <div class="form-grid">
+          <label class="full"
+            >Address *<input formControlName="location" placeholder="Street or operational location" /></label
+          ><label>City *<input formControlName="city" /></label><label>County *<input formControlName="county" /></label
+          ><label>State *<input formControlName="state" maxlength="2" /></label
+          ><label>Latitude *<input type="number" step=".0001" formControlName="latitude" /></label
+          ><label>Longitude *<input type="number" step=".0001" formControlName="longitude" /></label
+          ><label>Impact radius (km) *<input type="number" formControlName="impactRadiusKm" /></label
+          ><button class="map-picker full" type="button" (click)="selectMap()">
+            <span>⌖</span><b>Select location on map</b
+            ><small>Click to use the seeded Lewisville exercise location</small>
+          </button>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Command and initial assessment</h2>
+        <div class="form-grid">
+          <label>Operational period *<input formControlName="operationalPeriod" /></label
+          ><label>Incident commander *<input formControlName="commander" /></label
+          ><label>Estimated population affected *<input type="number" formControlName="populationAffected" /></label
+          ><label>Tags<input formControlName="tags" placeholder="Comma-separated" /></label
+          ><label class="full">Initial observations<textarea formControlName="observations" rows="4"></textarea></label>
+        </div>
+      </section>
+      @if (form.invalid && attempted()) {
+        <div class="error-banner" role="alert">
+          Review the required fields. Population and impact radius must be zero or greater, and valid coordinates are
+          required.
+        </div>
+      }
+      <div class="form-actions">
+        <button type="button" class="secondary" (click)="saveDraft()">Save draft</button
+        ><button type="submit" class="primary" [disabled]="submitting()">
+          {{ submitting() ? 'Creating…' : 'Create incident' }}
+        </button>
+      </div>
+    </form>`,
+})
+export class IncidentCreateComponent implements OnInit {
+  readonly saved = signal(false);
+  readonly submitting = signal(false);
+  readonly attempted = signal(false);
+  readonly types = ['Tornado', 'Flood', 'Wildfire', 'Severe weather', 'Infrastructure', 'Medical', 'Security'];
+  readonly severities: IncidentSeverity[] = ['Advisory', 'Minor', 'Moderate', 'Major', 'Critical', 'Catastrophic'];
+  readonly statuses: IncidentStatus[] = ['Draft', 'Monitoring', 'Active', 'Escalated'];
+  readonly form = new FormGroup({
+    title: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    type: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    description: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    severity: new FormControl<IncidentSeverity>('Moderate', { nonNullable: true }),
+    status: new FormControl<IncidentStatus>('Active', { nonNullable: true }),
+    reportedAt: new FormControl(new Date().toISOString().slice(0, 16), {
+      nonNullable: true,
+      validators: Validators.required,
+    }),
+    location: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    city: new FormControl('Lewisville', { nonNullable: true, validators: Validators.required }),
+    county: new FormControl('Denton', { nonNullable: true, validators: Validators.required }),
+    state: new FormControl('TX', { nonNullable: true, validators: Validators.required }),
+    latitude: new FormControl(33.0462, {
+      nonNullable: true,
+      validators: [Validators.required, Validators.min(-90), Validators.max(90)],
+    }),
+    longitude: new FormControl(-96.9942, {
+      nonNullable: true,
+      validators: [Validators.required, Validators.min(-180), Validators.max(180)],
+    }),
+    impactRadiusKm: new FormControl(2, { nonNullable: true, validators: [Validators.required, Validators.min(0)] }),
+    operationalPeriod: new FormControl('12:00–00:00', { nonNullable: true, validators: Validators.required }),
+    commander: new FormControl('Jordan Lee', { nonNullable: true, validators: Validators.required }),
+    populationAffected: new FormControl(0, { nonNullable: true, validators: [Validators.required, Validators.min(0)] }),
+    tags: new FormControl('', { nonNullable: true }),
+    observations: new FormControl('', { nonNullable: true }),
+  });
+  constructor(
+    private readonly data: DemoDataService,
+    private readonly router: Router,
+  ) {
+    this.form.valueChanges.subscribe(() => {
+      this.saved.set(false);
+      sessionStorage.setItem(KEY, JSON.stringify(this.form.getRawValue()));
+    });
+  }
+  ngOnInit() {
+    const draft = sessionStorage.getItem(KEY);
+    if (draft)
+      try {
+        this.form.patchValue(JSON.parse(draft) as ReturnType<typeof this.form.getRawValue>);
+      } catch {
+        sessionStorage.removeItem(KEY);
+      }
+  }
+  selectMap() {
+    this.form.patchValue({ location: 'Lewisville exercise impact area', latitude: 33.0462, longitude: -96.9942 });
+  }
+  saveDraft() {
+    sessionStorage.setItem(KEY, JSON.stringify(this.form.getRawValue()));
+    this.saved.set(true);
+  }
+  submit() {
+    this.attempted.set(true);
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    this.submitting.set(true);
+    const v = this.form.getRawValue();
+    const item = this.data.createIncident({
+      title: v.title,
+      type: v.type,
+      description: v.description,
+      severity: v.severity,
+      status: v.status,
+      reportedAt: new Date(v.reportedAt).toISOString(),
+      location: `${v.location}, ${v.city}, ${v.state}`,
+      county: v.county,
+      coordinates: { latitude: v.latitude, longitude: v.longitude },
+      commander: v.commander,
+      populationAffected: v.populationAffected,
+      impactRadiusKm: v.impactRadiusKm,
+    });
+    sessionStorage.removeItem(KEY);
+    void this.router.navigate(['/incidents', item.id, 'command']);
+  }
+}

@@ -1,1 +1,15 @@
-const js=require('@eslint/js');const tseslint=require('typescript-eslint');const angular=require('angular-eslint');module.exports=tseslint.config({ignores:['dist/**','coverage/**','playwright-report/**','node_modules/**']},js.configs.recommended,...tseslint.configs.recommended,...angular.configs.tsRecommended,{files:['**/*.ts'],processor:angular.processInlineTemplates,rules:{'@typescript-eslint/no-explicit-any':'error'}},{files:['**/*.html'],extends:[...angular.configs.templateRecommended,...angular.configs.templateAccessibility]});
+const js = require('@eslint/js');
+const tseslint = require('typescript-eslint');
+const angular = require('angular-eslint');
+module.exports = tseslint.config(
+  { ignores: ['dist/**', 'coverage/**', 'playwright-report/**', 'node_modules/**'] },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  ...angular.configs.tsRecommended,
+  {
+    files: ['**/*.ts'],
+    processor: angular.processInlineTemplates,
+    rules: { '@typescript-eslint/no-explicit-any': 'error' },
+  },
+  { files: ['**/*.html'], extends: [...angular.configs.templateRecommended, ...angular.configs.templateAccessibility] },
+);

@@ -1,2 +1,19 @@
-import { Component } from '@angular/core';import { MapComponent } from '../../shared/map/map.component';
-@Component({selector:'sai-map-page',imports:[MapComponent],template:`<header class="page-heading"><div><p class="eyebrow">Common operating picture</p><h1>Live Operational Map</h1><p>Layered synthetic incident, infrastructure, capacity, and route information.</p></div></header><div class="demo-notice"><strong>Exercise map</strong> — locations and operational states are demonstration data, not authoritative routing guidance.</div><sai-map/>`})export class MapPageComponent{}
+import { Component } from '@angular/core';
+import { MapComponent } from '../../shared/map/map.component';
+@Component({
+  selector: 'sai-map-page',
+  imports: [MapComponent],
+  template: `<header class="page-heading">
+      <div>
+        <p class="eyebrow">Common operating picture</p>
+        <h1>Live Operational Map</h1>
+        <p>Layered synthetic incident, infrastructure, capacity, and route information.</p>
+      </div>
+    </header>
+    <div class="demo-notice">
+      <strong>Exercise map</strong> — locations and operational states are demonstration data, not authoritative routing
+      guidance.
+    </div>
+    <sai-map />`,
+})
+export class MapPageComponent {}

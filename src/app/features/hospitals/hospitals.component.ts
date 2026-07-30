@@ -1,2 +1,101 @@
-import { Component,signal } from '@angular/core';import { DatePipe } from '@angular/common';import { DemoDataService } from '../../core/services/demo-data.service';import { MapComponent } from '../../shared/map/map.component';
-@Component({selector:'sai-hospitals',imports:[DatePipe,MapComponent],template:`<header class="page-heading"><div><p class="eyebrow">Healthcare coordination</p><h1>Hospitals & Capacity</h1><p>Coordinate destination awareness without replacing medical control.</p></div><div class="view-toggle"><button [class.active]="view()==='table'" (click)="view.set('table')">Table</button><button [class.active]="view()==='cards'" (click)="view.set('cards')">Cards</button><button [class.active]="view()==='map'" (click)="view.set('map')">Map</button></div></header><div class="demo-notice"><strong>Demonstration data — not connected to a live hospital system.</strong></div>@if(view()==='map'){<sai-map/>}@else if(view()==='cards'){<div class="entity-cards">@for(h of data.hospitals();track h.id){<article><span class="status">{{h.status}}</span><h2>{{h.name}}</h2><p>{{h.type}} · {{h.location}} · {{h.distanceKm}} km</p><div class="capacity"><div><strong>{{h.availableBeds}}</strong><span>Available beds</span></div><div><strong>{{h.icuAvailable}}</strong><span>ICU available</span></div></div><dl><div><dt>ED status</dt><dd>{{h.emergencyStatus}}</dd></div><div><dt>Trauma</dt><dd>{{h.traumaLevel}}</dd></div><div><dt>Helipad</dt><dd>{{h.helipad?'Available':'Unavailable'}}</dd></div></dl><small>Updated {{h.lastUpdated|date:'shortTime'}} · {{h.dataSource}}</small></article>}</div>}@else{<div class="table-wrap"><table><caption>Six synthetic demonstration hospitals</caption><thead><tr><th>Facility</th><th>Status</th><th>Distance</th><th>Emergency dept.</th><th>Available / total beds</th><th>ICU</th><th>Diversion</th><th>Updated</th></tr></thead><tbody>@for(h of data.hospitals();track h.id){<tr><th scope="row">{{h.name}}<small>{{h.type}} · {{h.traumaLevel}}</small></th><td><span class="status">{{h.status}}</span></td><td>{{h.distanceKm}} km</td><td>{{h.emergencyStatus}}</td><td>{{h.availableBeds}} / {{h.totalBeds}}</td><td>{{h.icuAvailable}}</td><td>{{h.diversion?'On diversion':'No'}}</td><td>{{h.lastUpdated|date:'shortTime'}}</td></tr>}</tbody></table></div>}`})export class HospitalsComponent{readonly view=signal<'table'|'cards'|'map'>('table');constructor(readonly data:DemoDataService){}}
+import { Component, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { DemoDataService } from '../../core/services/demo-data.service';
+import { MapComponent } from '../../shared/map/map.component';
+@Component({
+  selector: 'sai-hospitals',
+  imports: [DatePipe, MapComponent],
+  template: `<header class="page-heading">
+      <div>
+        <p class="eyebrow">Healthcare coordination</p>
+        <h1>Hospitals & Capacity</h1>
+        <p>Coordinate destination awareness without replacing medical control.</p>
+      </div>
+      <div class="view-toggle">
+        <button [class.active]="view() === 'table'" (click)="view.set('table')">Table</button
+        ><button [class.active]="view() === 'cards'" (click)="view.set('cards')">Cards</button
+        ><button [class.active]="view() === 'map'" (click)="view.set('map')">Map</button>
+      </div>
+    </header>
+    <div class="demo-notice"><strong>Demonstration data — not connected to a live hospital system.</strong></div>
+    @if (view() === 'map') {
+      <sai-map />
+    } @else if (view() === 'cards') {
+      <div class="entity-cards">
+        @for (h of data.hospitals(); track h.id) {
+          <article>
+            <span class="status">{{ h.status }}</span>
+            <h2>{{ h.name }}</h2>
+            <p>{{ h.type }} · {{ h.location }} · {{ h.distanceKm }} km</p>
+            <div class="capacity">
+              <div>
+                <strong>{{ h.availableBeds }}</strong
+                ><span>Available beds</span>
+              </div>
+              <div>
+                <strong>{{ h.icuAvailable }}</strong
+                ><span>ICU available</span>
+              </div>
+            </div>
+            <dl>
+              <div>
+                <dt>ED status</dt>
+                <dd>{{ h.emergencyStatus }}</dd>
+              </div>
+              <div>
+                <dt>Trauma</dt>
+                <dd>{{ h.traumaLevel }}</dd>
+              </div>
+              <div>
+                <dt>Helipad</dt>
+                <dd>{{ h.helipad ? 'Available' : 'Unavailable' }}</dd>
+              </div>
+            </dl>
+            <small>Updated {{ h.lastUpdated | date: 'shortTime' }} · {{ h.dataSource }}</small>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <caption>
+            Six synthetic demonstration hospitals
+          </caption>
+          <thead>
+            <tr>
+              <th>Facility</th>
+              <th>Status</th>
+              <th>Distance</th>
+              <th>Emergency dept.</th>
+              <th>Available / total beds</th>
+              <th>ICU</th>
+              <th>Diversion</th>
+              <th>Updated</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (h of data.hospitals(); track h.id) {
+              <tr>
+                <th scope="row">
+                  {{ h.name }}<small>{{ h.type }} · {{ h.traumaLevel }}</small>
+                </th>
+                <td>
+                  <span class="status">{{ h.status }}</span>
+                </td>
+                <td>{{ h.distanceKm }} km</td>
+                <td>{{ h.emergencyStatus }}</td>
+                <td>{{ h.availableBeds }} / {{ h.totalBeds }}</td>
+                <td>{{ h.icuAvailable }}</td>
+                <td>{{ h.diversion ? 'On diversion' : 'No' }}</td>
+                <td>{{ h.lastUpdated | date: 'shortTime' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }`,
+})
+export class HospitalsComponent {
+  readonly view = signal<'table' | 'cards' | 'map'>('table');
+  constructor(readonly data: DemoDataService) {}
+}

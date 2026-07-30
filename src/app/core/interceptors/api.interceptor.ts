@@ -1,3 +1,56 @@
-import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http'; import { inject } from '@angular/core'; import { Router } from '@angular/router'; import { catchError, retry, throwError, timer } from 'rxjs'; import { AuthService } from '../auth/auth.service';
-export interface ApiError { status:number; message:string; correlationId:string; kind:'network'|'unauthorized'|'forbidden'|'validation'|'rate-limit'|'upstream'|'unknown' }
-export const apiInterceptor:HttpInterceptorFn=(request,next)=>{const auth=inject(AuthService),router=inject(Router);const correlationId=crypto.randomUUID();const token=auth.token();const req=request.clone({setHeaders:{'X-Correlation-ID':correlationId,...(token?{Authorization:`Bearer ${token}`}:{})}});return next(req).pipe(retry({count:req.method==='GET'?2:0,delay:(error:HttpErrorResponse,count)=>error.status===0||error.status>=500?timer(250*2**count):throwError(()=>error)}),catchError((error:HttpErrorResponse)=>{if(error.status===401){auth.signOut()}if(error.status===403)void router.navigate(['/unauthorized']);const kind:ApiError['kind']=error.status===0?'network':error.status===401?'unauthorized':error.status===403?'forbidden':error.status===400?'validation':error.status===429?'rate-limit':error.status>=500?'upstream':'unknown';return throwError(()=>({status:error.status,message:'The request could not be completed.',correlationId:error.headers?.get('X-Correlation-ID')??correlationId,kind} satisfies ApiError));}))};
+import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { catchError, retry, throwError, timer } from 'rxjs';
+import { AuthService } from '../auth/auth.service';
+export interface ApiError {
+  status: number;
+  message: string;
+  correlationId: string;
+  kind: 'network' | 'unauthorized' | 'forbidden' | 'validation' | 'rate-limit' | 'upstream' | 'unknown';
+}
+export const apiInterceptor: HttpInterceptorFn = (request, next) => {
+  const auth = inject(AuthService),
+    router = inject(Router);
+  const correlationId = crypto.randomUUID();
+  const token = auth.token();
+  const req = request.clone({
+    setHeaders: { 'X-Correlation-ID': correlationId, ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+  });
+  return next(req).pipe(
+    retry({
+      count: req.method === 'GET' ? 2 : 0,
+      delay: (error: HttpErrorResponse, count) =>
+        error.status === 0 || error.status >= 500 ? timer(250 * 2 ** count) : throwError(() => error),
+    }),
+    catchError((error: HttpErrorResponse) => {
+      if (error.status === 401) {
+        auth.signOut();
+      }
+      if (error.status === 403) void router.navigate(['/unauthorized']);
+      const kind: ApiError['kind'] =
+        error.status === 0
+          ? 'network'
+          : error.status === 401
+            ? 'unauthorized'
+            : error.status === 403
+              ? 'forbidden'
+              : error.status === 400
+                ? 'validation'
+                : error.status === 429
+                  ? 'rate-limit'
+                  : error.status >= 500
+                    ? 'upstream'
+                    : 'unknown';
+      return throwError(
+        () =>
+          ({
+            status: error.status,
+            message: 'The request could not be completed.',
+            correlationId: error.headers?.get('X-Correlation-ID') ?? correlationId,
+            kind,
+          }) satisfies ApiError,
+      );
+    }),
+  );
+};

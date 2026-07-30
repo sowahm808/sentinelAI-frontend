@@ -13,14 +13,14 @@ Open <http://localhost:4200> and sign in with `commander@sentinelai.demo` / `Sen
 
 ## Commands
 
-| Command | Purpose |
-|---|---|
-| `npm start` | Development server |
-| `npm run build:production` | Optimized application bundle |
-| `npm run typecheck` | Strict TypeScript check |
-| `npm run lint` | ESLint and Angular template lint |
-| `npm test` | Vitest unit suite |
-| `npm run test:e2e` | Playwright critical workflow suite |
-| `npm run format` | Prettier formatting |
+| Command                    | Purpose                            |
+| -------------------------- | ---------------------------------- |
+| `npm start`                | Development server                 |
+| `npm run build:production` | Optimized application bundle       |
+| `npm run typecheck`        | Strict TypeScript check            |
+| `npm run lint`             | ESLint and Angular template lint   |
+| `npm test`                 | Vitest unit suite                  |
+| `npm run test:e2e`         | Playwright critical workflow suite |
+| `npm run format`           | Prettier formatting                |
 
 Configuration is typed in `src/environments`. Browser-visible configuration must never contain provider secrets. See `.env.example`, `ARCHITECTURE.md`, and `SECURITY.md`.

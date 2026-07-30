@@ -1,3 +1,137 @@
-import { Component,computed,inject } from '@angular/core';import { DatePipe } from '@angular/common';import { ActivatedRoute,RouterLink } from '@angular/router';import { DemoDataService } from '../../core/services/demo-data.service';import { MapComponent } from '../../shared/map/map.component';import { AI_DISCLAIMER } from '../../core/models/domain.models';
-@Component({selector:'sai-command-center',imports:[RouterLink,MapComponent,DatePipe],template:`@if(incident();as i){<header class="command-header"><div><span class="severity">◆ {{i.severity}}</span><span class="status">{{i.status}}</span><h1>{{i.title}}</h1><p>{{i.location}} · Started {{i.reportedAt|date:'short'}} · Commander {{i.commander}}</p></div><div class="command-actions"><a class="secondary button" [routerLink]="['/incidents',i.id,'recommendations']">Review AI plan</a><a class="primary button" [routerLink]="['/incidents',i.id,'reports','situation']">Generate SitRep</a></div></header><nav class="workspace-nav" aria-label="Incident workspace"><a class="active">Command</a><a [routerLink]="['/incidents',i.id,'recommendations']">Recommendations</a><a [routerLink]="['/incidents',i.id,'timeline']">Timeline</a><a [routerLink]="['/incidents',i.id,'reports']">Reports</a></nav><div class="freshness"><span>● Data simulation connected</span><span>Operational period 12:00–00:00</span><span>Last synthesis 2 min ago</span></div><div class="command-grid"><section class="panel map-panel"><div class="section-title"><h2>Incident map</h2><span>6 layers visible</span></div><sai-map [compact]="true"/></section><section class="panel situation"><h2>Situation summary</h2><p>{{data.plan().situationSummary}}</p><h3>Current objectives</h3><ol>@for(o of i.objectives;track o){<li>{{o}}</li>}</ol><h3>Priority risks</h3>@for(r of i.risks;track r){<div class="risk">⚠ {{r}}</div>}</section><section class="panel ai-panel"><div class="section-title"><h2>AI recommendations</h2><a [routerLink]="['/incidents',i.id,'recommendations']">Open plan</a></div><div class="ai-disclaimer">ⓘ {{disclaimer}}</div>@for(r of data.plan().recommendations;track r.id){<div class="rec-mini"><span>{{r.priority}}</span><b>{{r.action}}</b><small>{{r.status}} · {{r.confidence}}% confidence</small></div>}</section><section class="panel"><div class="section-title"><h2>Response resources</h2><a routerLink="/resources">Manage</a></div><div class="big-number">{{assigned().length}} <small>assigned or moving</small></div>@for(r of assigned().slice(0,5);track r.id){<div class="compact-row"><b>{{r.name}}</b><span class="status">{{r.status}}</span></div>}</section><section class="panel"><div class="section-title"><h2>Care & shelter capacity</h2><span>Synthetic</span></div><div class="capacity"><div><strong>{{beds()}}</strong><span>hospital beds</span></div><div><strong>{{spaces()}}</strong><span>shelter spaces</span></div></div>@for(h of data.hospitals().slice(0,3);track h.id){<div class="compact-row"><b>{{h.name}}</b><span>{{h.availableBeds}} beds</span></div>}</section><section class="panel"><div class="section-title"><h2>Activity timeline</h2><a [routerLink]="['/incidents',i.id,'timeline']">View all</a></div>@for(e of data.timeline().slice(0,5);track e.id){<div class="timeline-row"><time>{{e.at|date:'shortTime'}}</time><span></span><div><b>{{e.title}}</b><small>{{e.actor}}</small></div></div>}</section></div>}@else{<div class="empty-state"><h1>Incident not found</h1><p>The incident may have been removed or is not available to your organization.</p><a routerLink="/incidents">Return to incidents</a></div>}`})
-export class CommandCenterComponent{private readonly route=inject(ActivatedRoute);readonly id=this.route.snapshot.paramMap.get('incidentId')??'';readonly incident=computed(()=>this.data.getIncident(this.id));readonly assigned=computed(()=>this.data.resources().filter(r=>r.incidentId===this.id));readonly beds=computed(()=>this.data.hospitals().reduce((s,h)=>s+h.availableBeds,0));readonly spaces=computed(()=>this.data.shelters().reduce((s,x)=>s+x.capacity-x.occupancy,0));readonly disclaimer=AI_DISCLAIMER;constructor(readonly data:DemoDataService){}}
+import { Component, computed, inject } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { DemoDataService } from '../../core/services/demo-data.service';
+import { MapComponent } from '../../shared/map/map.component';
+import { AI_DISCLAIMER } from '../../core/models/domain.models';
+@Component({
+  selector: 'sai-command-center',
+  imports: [RouterLink, MapComponent, DatePipe],
+  template: `@if (incident(); as i) {
+      <header class="command-header">
+        <div>
+          <span class="severity">◆ {{ i.severity }}</span
+          ><span class="status">{{ i.status }}</span>
+          <h1>{{ i.title }}</h1>
+          <p>{{ i.location }} · Started {{ i.reportedAt | date: 'short' }} · Commander {{ i.commander }}</p>
+        </div>
+        <div class="command-actions">
+          <a class="secondary button" [routerLink]="['/incidents', i.id, 'recommendations']">Review AI plan</a
+          ><a class="primary button" [routerLink]="['/incidents', i.id, 'reports', 'situation']">Generate SitRep</a>
+        </div>
+      </header>
+      <nav class="workspace-nav" aria-label="Incident workspace">
+        <a class="active">Command</a><a [routerLink]="['/incidents', i.id, 'recommendations']">Recommendations</a
+        ><a [routerLink]="['/incidents', i.id, 'timeline']">Timeline</a
+        ><a [routerLink]="['/incidents', i.id, 'reports']">Reports</a>
+      </nav>
+      <div class="freshness">
+        <span>● Data simulation connected</span><span>Operational period 12:00–00:00</span
+        ><span>Last synthesis 2 min ago</span>
+      </div>
+      <div class="command-grid">
+        <section class="panel map-panel">
+          <div class="section-title">
+            <h2>Incident map</h2>
+            <span>6 layers visible</span>
+          </div>
+          <sai-map [compact]="true" />
+        </section>
+        <section class="panel situation">
+          <h2>Situation summary</h2>
+          <p>{{ data.plan().situationSummary }}</p>
+          <h3>Current objectives</h3>
+          <ol>
+            @for (o of i.objectives; track o) {
+              <li>{{ o }}</li>
+            }
+          </ol>
+          <h3>Priority risks</h3>
+          @for (r of i.risks; track r) {
+            <div class="risk">⚠ {{ r }}</div>
+          }
+        </section>
+        <section class="panel ai-panel">
+          <div class="section-title">
+            <h2>AI recommendations</h2>
+            <a [routerLink]="['/incidents', i.id, 'recommendations']">Open plan</a>
+          </div>
+          <div class="ai-disclaimer">ⓘ {{ disclaimer }}</div>
+          @for (r of data.plan().recommendations; track r.id) {
+            <div class="rec-mini">
+              <span>{{ r.priority }}</span
+              ><b>{{ r.action }}</b
+              ><small>{{ r.status }} · {{ r.confidence }}% confidence</small>
+            </div>
+          }
+        </section>
+        <section class="panel">
+          <div class="section-title">
+            <h2>Response resources</h2>
+            <a routerLink="/resources">Manage</a>
+          </div>
+          <div class="big-number">{{ assigned().length }} <small>assigned or moving</small></div>
+          @for (r of assigned().slice(0, 5); track r.id) {
+            <div class="compact-row">
+              <b>{{ r.name }}</b
+              ><span class="status">{{ r.status }}</span>
+            </div>
+          }
+        </section>
+        <section class="panel">
+          <div class="section-title">
+            <h2>Care & shelter capacity</h2>
+            <span>Synthetic</span>
+          </div>
+          <div class="capacity">
+            <div>
+              <strong>{{ beds() }}</strong
+              ><span>hospital beds</span>
+            </div>
+            <div>
+              <strong>{{ spaces() }}</strong
+              ><span>shelter spaces</span>
+            </div>
+          </div>
+          @for (h of data.hospitals().slice(0, 3); track h.id) {
+            <div class="compact-row">
+              <b>{{ h.name }}</b
+              ><span>{{ h.availableBeds }} beds</span>
+            </div>
+          }
+        </section>
+        <section class="panel">
+          <div class="section-title">
+            <h2>Activity timeline</h2>
+            <a [routerLink]="['/incidents', i.id, 'timeline']">View all</a>
+          </div>
+          @for (e of data.timeline().slice(0, 5); track e.id) {
+            <div class="timeline-row">
+              <time>{{ e.at | date: 'shortTime' }}</time
+              ><span></span>
+              <div>
+                <b>{{ e.title }}</b
+                ><small>{{ e.actor }}</small>
+              </div>
+            </div>
+          }
+        </section>
+      </div>
+    } @else {
+      <div class="empty-state">
+        <h1>Incident not found</h1>
+        <p>The incident may have been removed or is not available to your organization.</p>
+        <a routerLink="/incidents">Return to incidents</a>
+      </div>
+    }`,
+})
+export class CommandCenterComponent {
+  private readonly route = inject(ActivatedRoute);
+  readonly id = this.route.snapshot.paramMap.get('incidentId') ?? '';
+  readonly incident = computed(() => this.data.getIncident(this.id));
+  readonly assigned = computed(() => this.data.resources().filter((r) => r.incidentId === this.id));
+  readonly beds = computed(() => this.data.hospitals().reduce((s, h) => s + h.availableBeds, 0));
+  readonly spaces = computed(() => this.data.shelters().reduce((s, x) => s + x.capacity - x.occupancy, 0));
+  readonly disclaimer = AI_DISCLAIMER;
+  constructor(readonly data: DemoDataService) {}
+}

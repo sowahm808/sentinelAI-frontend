@@ -11,16 +11,36 @@
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:application",
-          "options": {"browser":"src/main.ts","polyfills":["zone.js"],"tsConfig":"tsconfig.app.json","inlineStyleLanguage":"scss","assets":[{"glob":"**/*","input":"public"}],"styles":["src/styles.scss"]},
+          "options": {
+            "browser": "src/main.ts",
+            "polyfills": ["zone.js"],
+            "tsConfig": "tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [{ "glob": "**/*", "input": "public" }],
+            "styles": ["src/styles.scss"]
+          },
           "configurations": {
-            "production": {"budgets":[{"type":"initial","maximumWarning":"1.5MB","maximumError":"2MB"}],"outputHashing":"all","fileReplacements":[{"replace":"src/environments/environment.ts","with":"src/environments/environment.production.ts"}]},
-            "development": {"optimization":false,"sourceMap":true}
+            "production": {
+              "budgets": [{ "type": "initial", "maximumWarning": "1.5MB", "maximumError": "2MB" }],
+              "outputHashing": "all",
+              "fileReplacements": [
+                { "replace": "src/environments/environment.ts", "with": "src/environments/environment.production.ts" }
+              ]
+            },
+            "development": { "optimization": false, "sourceMap": true }
           },
           "defaultConfiguration": "production"
         },
-        "serve": {"builder":"@angular-devkit/build-angular:dev-server","configurations":{"production":{"buildTarget":"sentinelai:build:production"},"development":{"buildTarget":"sentinelai:build:development"}},"defaultConfiguration":"development"}
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": { "buildTarget": "sentinelai:build:production" },
+            "development": { "buildTarget": "sentinelai:build:development" }
+          },
+          "defaultConfiguration": "development"
+        }
       }
     }
   },
-  "cli": {"analytics":false}
+  "cli": { "analytics": false }
 }

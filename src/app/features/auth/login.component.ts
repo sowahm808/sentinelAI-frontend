@@ -8,7 +8,11 @@ import { AuthService } from '../../core/auth/auth.service';
   imports: [ReactiveFormsModule, RouterLink, MatProgressSpinnerModule],
   template: `<main class="auth-page">
     <section class="auth-brand" aria-labelledby="brand-title">
-      <div class="shield">S</div>
+      <!-- <div class="shield">S</div> -->
+       <div>
+        <!-- add logo below -->
+        <img src="assets/images/sentinelai-logo.png" alt="SentinelAI Logo" class="logo" />
+       </div>
       <p class="eyebrow">Emergency operations intelligence</p>
       <h1 id="brand-title">SentinelAI</h1>
       <p class="tagline">AI That Helps Save Lives</p>
